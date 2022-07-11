@@ -1,7 +1,7 @@
 source ../../environment
 python3 nodeScan.py
 if [[ $HOSTNAME == *"nvme"* ]]; then
-  docker-compose up --detach xcache-server
+  docker compose up --detach xcache-server
 else
-  docker-compose up --detach
+  docker compose up --detach
 fi

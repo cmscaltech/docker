@@ -1,44 +1,30 @@
 services:
   xcache-server:
-    environment:
-    - X509_USER_PROXY=/etc/grid-security/x509
+    environment: [X509_USER_PROXY=/etc/grid-security/x509]
     image: ${SWARM}/xcache-server:latest
     network_mode: host
-    volumes:
-    - ./config/default/etc/xrootd/xrootd.cfg:/etc/xrootd/xrootd.cfg:ro
-    - ./config/default/etc/xrootd/lcmaps.db:/etc/xrootd/lcmaps.cfg:ro
-    - ./config/default/etc/xrootd/auth_file:/etc/xrootd/auth_file:ro
-    - ./config/default/etc/xrootd/scitokens.conf:/etc/xrootd/scitokens.conf:ro
-    - ./config/default/etc/xrootd/ban-robots.txt:/etc/xrootd/ban-robots.txt:ro
-    - ./config/${HOSTNAME}/etc/xrootd/config.d:/etc/xrootd/config.d:ro
-    - ./config/default/etc/supervisord.d/10-xrootd.conf:/etc/supervisord.d/10-xrootd.conf:ro
-    - /etc/grid-security:/etc/grid-security:ro
-    - /xcache-meta:/xcache-meta:rw
-    - /xcache-root:/xcache-root:rw
-    - /xcache-run:/xcache-run:rw
-    - /etc/passwd:/etc/passwd:ro
-    - /etc/group:/etc/group:ro
-    - /cvmfs/:/cvmfs:shared
+    restart: always
+    volumes: ['./config/default/etc/xrootd/xrootd.cfg:/etc/xrootd/xrootd.cfg:ro',
+      './config/default/etc/xrootd/lcmaps.db:/etc/xrootd/lcmaps.cfg:ro', './config/default/etc/xrootd/auth_file:/etc/xrootd/auth_file:ro',
+      './config/default/etc/xrootd/scitokens.conf:/etc/xrootd/scitokens.conf:ro',
+      './config/default/etc/xrootd/ban-robots.txt:/etc/xrootd/ban-robots.txt:ro',
+      './config/${HOSTNAME}/etc/xrootd/config.d:/etc/xrootd/config.d:ro', './config/default/etc/supervisord.d/10-xrootd.conf:/etc/supervisord.d/10-xrootd.conf:ro',
+      '/etc/grid-security:/etc/grid-security:ro', '/xcache-meta:/xcache-meta:rw',
+      '/xcache-root:/xcache-root:rw', '/xcache-run:/xcache-run:rw', '/etc/passwd:/etc/passwd:ro',
+      '/etc/group:/etc/group:ro', '/cvmfs/:/cvmfs:shared', '/data1:/data1:rw', '/data3:/data3:rw',
+      '/data2:/data2:rw', '/data4:/data4:rw']
   xrootd-clustered-server:
-    environment:
-    - X509_USER_PROXY=/etc/grid-security/x509
-    - XRD_REDIR=xcache.ultralight.org
-    - XRD_PORT=3040
-    - XRD_MNG_PORT=3041
-    - LOCAL_ROOT=/storage/cms
-    - SITENAME=T3_US_OSG_SoCal_Cache
+    environment: [X509_USER_PROXY=/etc/grid-security/x509, XRD_REDIR=xcache.ultralight.org,
+      XRD_PORT=3040, XRD_MNG_PORT=3041, LOCAL_ROOT=/storage/cms, SITENAME=T3_US_OSG_SoCal_Cache]
     image: ${SWARM}/xrootd-clustered-server:latest
     network_mode: host
-    volumes:
-    - ../xrootd-clustered-server/config/default/etc/xrootd/scitokens.cfg:/etc/xrootd/scitokens.cfg:ro
-    - ../xrootd-clustered-server/config/default/etc/xrootd/lcmaps.db:/etc/xrootd/lcmaps.cfg:ro
-    - /etc/xrootd/macaroon-secret:/etc/xrootd/macaroon-secret:ro
-    - ../xrootd-clustered-server/config/default/etc/xrootd/xrootd-clustered.cfg:/etc/xrootd/xrootd-clustered.cfg:ro
-    - ../xrootd-clustered-server/config/default/etc/xrootd/auth_file:/etc/xrootd/auth_file:ro
-    - ./config/${HOSTNAME}/etc/xrootd/config.d:/etc/xrootd/config.d:ro
-    - ../xrootd-clustered-server/config/default/etc/supervisord.d/10-xrootd.conf:/etc/supervisord.d/10-xrootd.conf:ro
-    - /etc/grid-security:/etc/grid-security:ro
-    - /etc/passwd:/etc/passwd:ro
-    - /etc/group:/etc/group:ro
-    - /xcache-root/:/storage/cms:ro
+    restart: always
+    volumes: ['../xrootd-clustered-server/config/default/etc/xrootd/scitokens.cfg:/etc/xrootd/scitokens.cfg:ro',
+      '../xrootd-clustered-server/config/default/etc/xrootd/lcmaps.db:/etc/xrootd/lcmaps.cfg:ro',
+      '/etc/xrootd/macaroon-secret:/etc/xrootd/macaroon-secret:ro', '../xrootd-clustered-server/config/default/etc/xrootd/xrootd-clustered.cfg:/etc/xrootd/xrootd-clustered.cfg:ro',
+      '../xrootd-clustered-server/config/default/etc/xrootd/auth_file:/etc/xrootd/auth_file:ro',
+      './config/${HOSTNAME}/etc/xrootd/config.d:/etc/xrootd/config.d:ro', '../xrootd-clustered-server/config/default/etc/supervisord.d/10-xrootd.conf:/etc/supervisord.d/10-xrootd.conf:ro',
+      '/etc/grid-security:/etc/grid-security:ro', '/etc/passwd:/etc/passwd:ro', '/etc/group:/etc/group:ro',
+      '/xcache-root/:/storage/cms:ro', '/data1:/data1:rw', '/data3:/data3:rw', '/data2:/data2:rw',
+      '/data4:/data4:rw']
 version: '2.4'
