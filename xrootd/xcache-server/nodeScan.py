@@ -23,6 +23,11 @@ for service in compContent['services'].keys():
             newVolumes.append(item)
 
     for item in blockdevices.get('blockdevices', []):
+        if item['mountpoint'] and item['mountpoint'].startswith('/data'):
+            #print ('Mountpoint: ' + item['mountpoint'])
+            newVolumes.append("%s:%s:rw" % (item['mountpoint'], item['mountpoint']))
+            volumes.append(item['mountpoint'])
+
         for chitem in item.get('children', []):
             if chitem['mountpoint'] and chitem['mountpoint'].startswith('/data'):
                 newVolumes.append("%s:%s:rw" % (chitem['mountpoint'], chitem['mountpoint']))
@@ -41,6 +46,7 @@ with open('%s/90-custom.cfg' % xdir, 'w') as fd:
     fd.write('AUTO DISKS CONFIGURED BY SCRIPT\n')
     fd.write('='*40 + '\n\n')
     for item in volumes:
+        print('volume: ' + item)
         if not os.path.isdir('%s/xcache' % item):
             print('Disk %s is ignored as it does not have xcache directory inside' % item)
             continue

@@ -1,2 +1,2 @@
-export SWARM="swarm-01:5000"
+export SWARM="swarm-01.ultralight.org:5000"
 export HOSTNAME=`hostname -s`
