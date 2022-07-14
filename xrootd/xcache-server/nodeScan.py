@@ -6,10 +6,11 @@ import yaml
 import subprocess
 import psutil
 
+compFileTemplate = 'docker-compose.yml.template'
 compFile = 'docker-compose.yml'
 compContent = {}
 
-with open(compFile, 'r') as fd:
+with open(compFileTemplate, 'r') as fd:
     compContent = yaml.safe_load(fd)
 
 process = subprocess.run("lsblk --json -o NAME,MOUNTPOINT".split(), stdout=subprocess.PIPE)

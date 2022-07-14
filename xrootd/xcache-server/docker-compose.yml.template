@@ -4,6 +4,7 @@ services:
     - X509_USER_PROXY=/etc/grid-security/x509
     image: ${SWARM}/xcache-server:latest
     network_mode: host
+    restart: always
     volumes:
     - ./config/default/etc/xrootd/xrootd.cfg:/etc/xrootd/xrootd.cfg:ro
     - ./config/default/etc/xrootd/lcmaps.db:/etc/xrootd/lcmaps.cfg:ro
@@ -28,6 +29,7 @@ services:
     - SITENAME=T3_US_OSG_SoCal_Cache
     image: ${SWARM}/xrootd-clustered-server:latest
     network_mode: host
+    restart: always
     volumes:
     - ../xrootd-clustered-server/config/default/etc/xrootd/scitokens.cfg:/etc/xrootd/scitokens.cfg:ro
     - ../xrootd-clustered-server/config/default/etc/xrootd/lcmaps.db:/etc/xrootd/lcmaps.cfg:ro
