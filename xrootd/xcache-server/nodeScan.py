@@ -34,7 +34,7 @@ for service in compContent['services'].keys():
                 newVolumes.append("%s:%s:rw" % (chitem['mountpoint'], chitem['mountpoint']))
                 volumes.append(chitem['mountpoint'])
 
-    compContent['services'][service]['volumes'] = newVolumes
+    compContent['services'][service]['volumes'] = list(set(newVolumes))
 
 with open(compFile, 'w') as fd:
     yaml.dump(compContent, fd)
