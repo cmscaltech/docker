@@ -1,6 +1,6 @@
 #!/bin/bash
 
-: ${AMQP_URL:="amqps://username:password@example.com/vhost"}
+: ${AMQP_URL:="amqps://clever-turkey.rmq.cloudamqp.com/xrd-mon"}
 : ${AMQP_EXCHANGE:="shoveled-xrd"}
 : ${AMQP_TOPIC:=""}
 : ${AMQP_TOKEN_LOCATION:="/etc/xrootd-monitoring-shoveler/token"}
@@ -50,9 +50,14 @@ metrics:
 # The queue keeps 100 messages in memory.  If the shoveler is disconnected from the message bus,
 # it will store messages over the 100 in memory onto disk into this directory.  Once the connection has been re-established
 # the queue will be emptied.  The queue on disk is persistent between restarts.
-config_directory: ${OVERFLOW_DIRECTORY}
+queue_directory: ${OVERFLOW_DIRECTORY}
+
+# doc said it should be queue_directory, but default file comes with config_directory
+
 EOF
 }
+
+${OVERFLOW_DIRECTORY}
 
 prepare_shoveler_server
 
