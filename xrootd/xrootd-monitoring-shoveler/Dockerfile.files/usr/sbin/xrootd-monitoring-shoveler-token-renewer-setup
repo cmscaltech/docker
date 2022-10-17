@@ -1,0 +1,6 @@
+#!/bin/bash
+
+rm /var/spool/osg-token-svc/.oidc-agent/*
+/usr/sbin/osg-token-renewer-setup renewer
+
+/usr/bin/test -f /var/spool/osg-token-svc/.oidc-agent/renewer && /usr/bin/supervisorctl start osg-token-renewer

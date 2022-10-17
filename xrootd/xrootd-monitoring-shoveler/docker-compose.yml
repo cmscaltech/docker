@@ -1,5 +1,6 @@
 services:
   xrootd-monitoring-shoveler:
+    container_name: xrootd-monitoring-shoveler
     env_file:
     - docker-compose.env
     image: xrootd-monitoring-shoveler
