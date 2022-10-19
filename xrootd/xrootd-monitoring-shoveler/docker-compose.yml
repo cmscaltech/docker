@@ -1,10 +1,36 @@
+version: '3.9'
+
+networks:
+  outside:
+    driver: macvlan
+    enable_ipv6: true
+    driver_opts:
+      parent: team0.63
+    ipam:
+      driver: default
+      config:
+      - subnet: 198.32.44.0/26
+        gateway: 198.32.44.1
+      - subnet: 2605:d9c0:1::/58
+        gateway: 2605:d9c0:1::1
+
 services:
   xrootd-monitoring-shoveler:
     container_name: xrootd-monitoring-shoveler
     env_file:
     - docker-compose.env
     image: xrootd-monitoring-shoveler
-    network_mode: host
+    hostname: xrootd-shoveler.ultralight.org
+    dns_search: ultralight.org
+    dns:
+    - 198.32.44.61
+    - 198.32.44.62
+    - 2605:d9c0:1:1::1:3
+    - 2605:d9c0:1:1::1:4
+    networks:
+      outside:
+        ipv4_address: 198.32.44.31
+        ipv6_address: 2605:d9c0:1:12::5:0
     restart: unless-stopped
     build:
       context: .
