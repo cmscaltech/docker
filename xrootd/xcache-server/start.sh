@@ -1,7 +1,7 @@
 source ../../environment
 
 if [[ "$HOSTNAME" =~ ^xrd-nvme- ]]; then
-  python3 nodeScan.py --mem-percentage=0.35
+  python3 nodeScan.py --memory-percent=35
 else
   python3 nodeScan.py
 fi
