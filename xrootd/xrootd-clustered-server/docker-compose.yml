@@ -8,6 +8,7 @@ services:
     - XRD_REDIR=xrootd-redir.ultralight.org
     - XRD_PORT=1094
     - XRD_MNG_PORT=1213
+    - XRD_MONITOR=xrootd-shoveler.ultralight.org:9993
     - LOCAL_ROOT=/storage/cms
     - SITENAME=T2_US_Caltech
     volumes:
