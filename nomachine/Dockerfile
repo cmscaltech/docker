@@ -20,6 +20,10 @@ ENV NOMACHINE_PACKAGE_NAME nomachine_8.10.1_1_amd64.deb
 ENV NOMACHINE_BUILD 8.10
 ENV NOMACHINE_MD5 2367db57367e9b6cc316e72b437bffe6
 
+COPY build/mozilla.list /etc/apt/sources.list.d/mozilla.list
+COPY build/mozilla /etc/apt/preferences.d/mozilla
+COPY build/repo-signing-key.gpg /etc/apt/keyrings/packages.mozilla.org.asc
+
 RUN apt-get clean && apt-get update && apt-get install -y locales && \
     locale-gen en_US.UTF-8 && locale-gen en_US && \
     echo "America/Los_Angeles" > /etc/timezone && \
@@ -35,13 +39,10 @@ RUN apt-get clean && apt-get update && apt-get install -y locales && \
     iputils-ping libxss1 wget xdg-utils libpango1.0-0 fonts-liberation \
     mate-desktop-environment-extras htop nano git vim && \
     apt-get install -y default-jre default-jdk icedtea-netx && \
+    apt-get install -y firefox && \
     apt-get clean && \
     curl -fSL "http://download.nomachine.com/download/${NOMACHINE_BUILD}/Linux/${NOMACHINE_PACKAGE_NAME}" -o nomachine.deb \
     && echo "${NOMACHINE_MD5} *nomachine.deb" | md5sum -c - && dpkg -i nomachine.deb && sed -i "s|#EnableClipboard both|EnableClipboard both |g" /usr/NX/etc/server.cfg
-
-RUN add-apt-repository ppa:mozillateam/ppa
-COPY mozila-firefox /etc/apt/preferences.d/mozilla-firefox
-RUN apt install -y firefox
 
 COPY build/nxserver.sh /
 
