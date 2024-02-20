@@ -1,10 +1,13 @@
 #!/bin/bash
-mkdir -p /etc/grid-security/xrootd/
-cp /etc/grid-security/xrootdcert.pem $XRD_CERT
-cp /etc/grid-security/xrootdkey.pem $XRD_KEY
-chown xrootd:xrootd $XRD_CERT
-chown xrootd:xrootd $XRD_KEY
-chmod 600 $XRD_KEY
+# This script is used to update the XCache proxy every 10 minutes
+if [ -z "$X509_USER_PROXY" ]; then
+  echo "X509_USER_PROXY is not set. Exiting..."
+  exit 1
+fi
+if [ -z "$K8S_X509_USER_PROXY" ]; then
+  echo "K8S_X509_USER_PROXY is not set. Exiting..."
+  exit 1
+fi
 while :
 do
   if cmp --silent -- "$X509_USER_PROXY" "$K8S_X509_USER_PROXY"; then
@@ -20,5 +23,3 @@ do
   fi
   sleep 600
 done
-
-

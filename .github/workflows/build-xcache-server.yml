@@ -19,7 +19,7 @@ jobs:
       DOCKER_TIER2_USER: ${{secrets.DOCKER_TIER2_USER}}
       DOCKER_TIER2_REGISTRY: ${{secrets.DOCKER_TIER2_REGS}}
       IMAGE_NAME: "cmscaltech/xcache-server"
-      BUILD_DIR: "cmscaltech-docker/xrootd/xcache-server/"
+      BUILD_DIR: "cmscaltech-docker/xrootd/xrootd-stageout-server/"
     steps:
     - name: Checkout tools repo
       uses: actions/checkout@v3

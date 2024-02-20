@@ -3,6 +3,7 @@
 import os
 import time
 import logging
+import json
 import socket
 from logging import StreamHandler
 from subprocess import check_output, CalledProcessError
@@ -33,12 +34,16 @@ class XRootDLogMon:
         self.logger = logger
         self.hostname = os.getenv('HOSTNAME', socket.gethostname())
         self.workdir = os.getenv('PROM_WORKDIR', "/srv/")
+        self.monlable = os.getenv('MONITORING_LABEL', "unset")
         self.registry = None
         self.loginGauge = None
         self.tpcPushGauge = None
         self.tpcPullGauge = None
         self.connectionGauge = None
-        self.asndb = pyasn.pyasn('/opt/pyasn/GeoIPASNum.dat')
+        self.asndb = None
+        self.asnnames = {}
+        self.__prepareASNs()
+        self.allconn = {'4': {}, '6': {}}
         self.xrootd_files =['/var/log/xrootd/xrootd.log',
                     '/var/log/xrootd/2/xrootd.log',
                     '/var/log/xrootd/3/xrootd.log',
@@ -47,7 +52,17 @@ class XRootDLogMon:
                     '/var/log/xrootd/xcache/xrootd.log',
                     '/var/log/xrootd/stageout/xrootd.log']
 
-
+    def __prepareASNs(self):
+        """Prepare ASNs."""
+        self.asndb = pyasn.pyasn('/opt/pyasn/GeoIPASNum.dat')
+        self.asnnames = {}
+        if os.path.isfile('/opt/pyasn/asnnames'):
+            with open('/opt/pyasn/asnnames', 'r', encoding='utf-8') as fd:
+                tmpasns = json.load(fd)
+                for key, val in tmpasns.items():
+                    tmpval = val.split(', ')
+                    self.asnnames[int(key)] = {'name': tmpval[0],
+                                               'country': tmpval[1]}
     def __cleanRegistry(self):
         """Get new/clean prometheus registry."""
         self.registry = CollectorRegistry()
@@ -55,16 +70,17 @@ class XRootDLogMon:
     def __cleanGauge(self):
         """Get new/clean prometheus gauge."""
         self.loginGauge = Gauge("xrootd_logins", "XRootD Logins",
-                            ["hostname", "username"],
+                            ["hostname", "username", "monlabel"],
                             registry=self.registry)
         self.tpcPushGauge = Gauge("xrootd_tpc_push", "XRootD TPC Push Requests",
-                            ["hostname", "event", "user"],
+                            ["hostname", "event", "user", "monlabel"],
                             registry=self.registry)
         self.tpcPullGauge = Gauge("xrootd_tpc_pull", "XRootD TPC Pull Requests",
-                            ["hostname", "event", "user"],
+                            ["hostname", "event", "user", "monlabel"],
                             registry=self.registry)
         self.connectionGauge = Gauge("xrootd_connections", "XRootD Connections",
-                            ["hostname", "laddr_asn", "raddr_asn", "iptype"],
+                            ["hostname", "laddr_asn", "raddr_asn", "asn_name",
+                             "asn_country", "status", "iptype", "monlabel"],
                             registry=self.registry)
 
     def _executeCmd(self, cmd):
@@ -100,7 +116,7 @@ class XRootDLogMon:
                     logins[tmpLine[-1]] += 1
         # Write to prometheus
         for user, count in logins.items():
-            self.loginGauge.labels(self.hostname, user).set(count)
+            self.loginGauge.labels(self.hostname, user, self.monlable).set(count)
 
     def _parseTPCLine(self, line):
         """Parse TPC Line."""
@@ -132,9 +148,9 @@ class XRootDLogMon:
                     allOut[tpcOut['event']][tpcOut['user']] += 1
         # Write to prometheus
         for event, users in allOut.items():
-            self.tpcPushGauge.labels(self.hostname, event, 'all').set(sum(users.values()))
+            self.tpcPushGauge.labels(self.hostname, event, 'all', self.monlable).set(sum(users.values()))
             for user, count in users.items():
-                self.tpcPushGauge.labels(self.hostname, event, user).set(count)
+                self.tpcPushGauge.labels(self.hostname, event, user, self.monlable).set(count)
 
     def parseTPCPullRequest(self):
         """Parse TPC Pull Request."""
@@ -154,53 +170,75 @@ class XRootDLogMon:
                     allOut[tpcOut['event']][tpcOut['user']] += 1
         # Write to prometheus
         for event, users in allOut.items():
-            self.tpcPullGauge.labels(self.hostname, event, 'all').set(sum(users.values()))
+            self.tpcPullGauge.labels(self.hostname, event, 'all', self.monlable).set(sum(users.values()))
             for user, count in users.items():
-                self.tpcPullGauge.labels(self.hostname, event, user).set(count)
+                self.tpcPullGauge.labels(self.hostname, event, user, self.monlable).set(count)
 
-    def _getAsnType(self, ip):
+    def _getAsnIDNameCountry(self, ip):
         """Get ASN."""
+        asn = self.asndb.lookup(ip)[0]
+        return asn,\
+               self.asnnames.get(asn, {}).get('name', 'Unknown'),\
+               self.asnnames.get(asn, {}).get('country', 'Unknown')
+
+    def _getIPTypeVal(self, ip):
+        """Get IP Type, Val"""
         # IP can be ipv4/6. If IPv4 - need to cut out '::ffff:'
         # family always report AF_INET6, so need to check if it starts with ::ffff:
         iptype = '6'
         if ip.startswith('::ffff:'):
             iptype = '4'
             ip = ip.split('::ffff:')[1]
-        asn = self.asndb.lookup(ip)[0]
-        return iptype, asn
+        return iptype, ip
 
-    def parseAllConnections(self):
-        """Parse all connections"""
-        # Get all active connections to port from env XRD_PORT (or default 1094)
+    def logConnections(self):
+        """Log Connections to XRootD."""
         xrdPort = os.getenv('XRD_PORT', '1094')
-        connections = {'4': {}, '6': {}}
         for conn in psutil.net_connections():
             if conn.laddr.port == int(xrdPort):
                 # IP can be ipv4/6. If IPv4 - need to cut out '::ffff:'
                 # family always report AF_INET6, so need to check if it starts with ::ffff:
-                iptype = '6'
                 try:
                     ip = conn.raddr.ip
+                    rport = conn.raddr.port
                 except AttributeError:
                     continue
-                riptype, rasn = self._getAsnType(ip)
+                riptype, rip = self._getIPTypeVal(ip)
                 try:
                     ip = conn.laddr.ip
+                    lport = conn.laddr.port
                 except AttributeError:
                     continue
-                liptype, lasn = self._getAsnType(ip)
+                liptype, lip = self._getIPTypeVal(ip)
                 if riptype != liptype:
-                    print(f'How it can be? Ignoring. {liptype} {lasn} {riptype} {rasn}')
+                    print(f'How it can be? Ignoring. {liptype} {riptype}')
                     continue
-                if rasn and lasn:
-                    connections[liptype].setdefault(lasn, {})
-                    connections[liptype][lasn].setdefault(rasn, 0)
-                    connections[liptype][lasn][rasn] += 1
+                # Add entry to connections
+                val = f'{lip},{lport},{rip},{rport}'
+                self.allconn[liptype].setdefault(val, conn.status)
+
+
+    def parseAllConnections(self):
+        """Parse all connections"""
+        # Get all active connections to port from env XRD_PORT (or default 1094)
+        connections = {'4': {}, '6': {}}
+        for conntype, vals in self.allconn.items():
+            for val, status in vals.items():
+                lip, _, rip, _ = val.split(',')
+                lasn = self._getAsnIDNameCountry(lip)
+                rasn = self._getAsnIDNameCountry(rip)
+                connections[conntype].setdefault(lasn[0], {})
+                connections[conntype][lasn[0]].setdefault(rasn[0], {})
+                connections[conntype][lasn[0]][rasn[0]].setdefault(status, {'name': rasn[1], 'country': rasn[2], 'count': 0})
+                connections[conntype][lasn[0]][rasn[0]][status]['count'] += 1
         # Write to prometheus
         for iptype, asns in connections.items():
             for lasn, rasns in asns.items():
-                for rasn, count in rasns.items():
-                    self.connectionGauge.labels(self.hostname, lasn, rasn, iptype).set(count)
+                for rasn, countstats in rasns.items():
+                    for status, countstat in countstats.items():
+                        self.connectionGauge.labels(self.hostname, lasn, rasn, iptype,
+                                                    countstat['name'], countstat['country'],
+                                                    status, self.monlable).set(int(countstat['count']))
 
     def main(self):
         """ Main Method"""
@@ -209,6 +247,7 @@ class XRootDLogMon:
         self.getLogins()
         self.parseTPCPushRequest()
         self.parseTPCPullRequest()
+        self.logConnections()
         self.parseAllConnections()
 
     def execute(self):
@@ -222,15 +261,19 @@ class XRootDLogMon:
         with open(f'{self.workdir}/xrootd-metrics', 'wb') as fd:
             fd.write(data)
         self.logger.info('StartTime: %s, EndTime: %s, Runtime: %s', startTime, endTime, totalRuntime)
+        self.allconn = {'4': {}, '6': {}}  # Reset all connections
         return totalRuntime
 
 
 if __name__ == "__main__":
     LOGGER = getStreamLogger()
     xworker = XRootDLogMon(LOGGER)
+    sleepTime = 0
     while True:
-        runtimeAll = xworker.execute()
-        sleepTime = int(60 - runtimeAll)
-        if sleepTime > 0:
-            LOGGER.info("Sleeping %s seconds", sleepTime)
-            time.sleep(int(sleepTime))
+        if sleepTime <= 0:
+            runtimeAll = xworker.execute()
+            sleepTime = int(60 - runtimeAll)
+        elif sleepTime >= 0:
+            xworker.logConnections()
+            time.sleep(1)
+            sleepTime -= 1
