@@ -30,6 +30,10 @@ COPY config/default/opt/xroot-mon.py /opt/xroot-mon.py
 COPY config/default/opt/http-server.py /opt/http-server.py
 # Copy xcache cert auto update script
 COPY config/default/opt/cache-update.sh /opt/cache-update.sh
+# Copy fetch-crl, cmsd and xrootd start scripts
+COPY config/default/opt/fetch-crl.sh /opt/fetch-crl.sh
+COPY config/default/opt/start-cmsd.sh /opt/start-cmsd.sh
+COPY config/default/opt/start-xrootd.sh /opt/start-xrootd.sh
 
 # To track connections, we need pyasn lib and GeoIP database
 RUN yum -y install gcc python3-devel python3-gunicorn && yum clean all
@@ -40,8 +44,6 @@ RUN pyasn_util_download.py --latestv46 --filename /opt/pyasn/GeoIPASNum.rib && \
     pyasn_util_asnames.py --output asnnames && \
     rm -f /opt/pyasn/GeoIPASNum.rib
 
-# Add cron to fetch crl on boot
-COPY config/default/etc/cron.d/fetch-crl-reboot /etc/cron.d/fetch-crl-reboot
 
 COPY config/default/etc/supervisord.d/10-xrootd.conf /etc/supervisord.d/10-xrootd.conf
 COPY config/default/etc/xrootd/scitokens.cfg /etc/xrootd/scitokens.cfg
