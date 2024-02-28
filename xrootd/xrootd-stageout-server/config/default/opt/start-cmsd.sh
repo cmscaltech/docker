@@ -10,6 +10,5 @@ do
   else
     echo "cmsD start delayed 5seconds. Fetch CRL has not finished..."
     sleep 5
-    exit 1
   fi
 done
