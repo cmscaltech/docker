@@ -6,4 +6,6 @@ RUN mkdir -p /opt && \
     curl -fSL "https://github.com/boynux/squid-exporter/releases/download/v1.11.0/squid-exporter-linux-amd64" -o /opt/squid-exporter && \
     chmod +x /opt/squid-exporter
 
+COPY config/etc/squid/customize.d/15-tier2custom.awk /etc/squid/customize.d/15-tier2custom.awk
+
 COPY config/etc/supervisord.d/10-squid-exporter.conf /etc/supervisord.d/10-squid-exporter.conf
