@@ -55,7 +55,6 @@ class XRootDLogMon:
     def __prepareASNs(self):
         """Prepare ASNs."""
         self.asndb = pyasn.pyasn('/opt/pyasn/GeoIPASNum.dat')
-        self.asnnames = {}
         if os.path.isfile('/opt/pyasn/asnnames'):
             with open('/opt/pyasn/asnnames', 'r', encoding='utf-8') as fd:
                 tmpasns = json.load(fd)
@@ -236,9 +235,8 @@ class XRootDLogMon:
             for lasn, rasns in asns.items():
                 for rasn, countstats in rasns.items():
                     for status, countstat in countstats.items():
-                        self.connectionGauge.labels(self.hostname, lasn, rasn, iptype,
-                                                    countstat['name'], countstat['country'],
-                                                    status, self.monlable).set(int(countstat['count']))
+                        self.connectionGauge.labels(self.hostname, lasn, rasn, countstat['name'], countstat['country'],
+                                                    status, iptype, self.monlable).set(int(countstat['count']))
 
     def main(self):
         """ Main Method"""

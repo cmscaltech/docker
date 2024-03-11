@@ -41,7 +41,7 @@ RUN pip3 install pyasn psutil
 RUN mkdir -p /opt/pyasn
 RUN pyasn_util_download.py --latestv46 --filename /opt/pyasn/GeoIPASNum.rib && \
     pyasn_util_convert.py --single /opt/pyasn/GeoIPASNum.rib /opt/pyasn/GeoIPASNum.dat && \
-    pyasn_util_asnames.py --output asnnames && \
+    pyasn_util_asnames.py --output /opt/pyasn/asnnames && \
     rm -f /opt/pyasn/GeoIPASNum.rib
 
 
