@@ -80,5 +80,12 @@ RUN yum update -y && \
 RUN ln -s /usr/bin/python2 /usr/bin/python
 
 RUN yum -y install condor
-
+RUN mkdir -p /root/.apptainer && \
+    mkdir -p /wntmp/condor/log && \
+    mkdir -p /wntmp/condor/execute && \
+    mkdir -p /etc/condor/config.d && \
+    mkdir -p /etc/condor/tokens.d && \
+    mkdir -p /etc/condor/passwords.d && \
+    chown -R condor:condor /wntmp/
+COPY config/99-local.conf /etc/condor/config.d/99-local.conf
 
