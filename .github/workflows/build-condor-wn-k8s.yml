@@ -1,4 +1,4 @@
-name: Docker Image Build For Condor WN
+name: Docker Image Build For Condor WN in K8s
 
 
 on:
