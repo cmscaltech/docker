@@ -1,0 +1,16 @@
+# ===================================================================
+# WARNING! THIS FILE WAS AUTOMATICALLY PREPARED BY PUPPET
+# ANY MODIFICATIONS TO THIS FILE WILL BE OVERWRITTEN ON PUPPET RUN
+# IN CASE YOU WANT TO DO MODIFICATIONS, MAKE SURE YOU DISABLE PUPPET!
+# ===================================================================
+CVMFS_SEND_INFO_HEADER=yes
+CVMFS_CONFIG_REPOSITORY=config-osg.opensciencegrid.org
+CVMFS_CONFIG_REPO_REQUIRED=yes
+CVMFS_FALLBACK_PROXY="http://cvmfsbproxy.cern.ch:3126;http://cvmfsbproxy.fnal.gov:3126"
+CVMFS_REPOSITORIES="$((echo config-osg.opensciencegrid.org;echo oasis.opensciencegrid.org;echo cms.cern.ch;ls /cvmfs)|sort -u|paste -sd ,)"
+CVMFS_CACHE_BASE=/wntmp/cvmfs
+export CMS_LOCAL_SITE=/cvmfs/cms.cern.ch/SITECONF/T2_US_Caltech
+CVMFS_NFILES=1048576
+CVMFS_IPFAMILY_PREFER=6
+# Autostart will add CVMFS_QUOTA_LIMIT and CVMFS_HTTP_PROXY from environment variables
+
