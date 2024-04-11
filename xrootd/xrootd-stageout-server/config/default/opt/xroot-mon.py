@@ -6,7 +6,7 @@ import logging
 import json
 import socket
 from logging import StreamHandler
-from subprocess import check_output, CalledProcessError
+from subprocess import check_output, CalledProcessError, Popen, PIPE
 import psutil
 import pyasn
 from prometheus_client import Gauge, CollectorRegistry, generate_latest
@@ -40,6 +40,7 @@ class XRootDLogMon:
         self.tpcPushGauge = None
         self.tpcPullGauge = None
         self.connectionGauge = None
+        self.serviceGauge = None
         self.asndb = None
         self.asnnames = {}
         self.__prepareASNs()
@@ -80,6 +81,9 @@ class XRootDLogMon:
         self.connectionGauge = Gauge("xrootd_connections", "XRootD Connections",
                             ["hostname", "laddr_asn", "raddr_asn", "asn_name",
                              "asn_country", "status", "iptype", "monlabel"],
+                            registry=self.registry)
+        self.serviceGauge = Gauge("service_states", "Service States",
+                            ["hostname", "servicename", "monlabel"],
                             registry=self.registry)
 
     def _executeCmd(self, cmd):
@@ -238,6 +242,20 @@ class XRootDLogMon:
                         self.connectionGauge.labels(self.hostname, lasn, rasn, countstat['name'], countstat['country'],
                                                     status, iptype, self.monlable).set(int(countstat['count']))
 
+    def processStatus(self):
+        """Get Process Status from Supervisord"""
+        cmd = 'supervisorctl status'
+        with Popen(cmd.split(), stderr=PIPE, stdout=PIPE) as process:
+            stdout, _ = process.communicate()
+            _ = process.wait()
+            for line in stdout.decode('utf-8').split('\n'):
+                splline = line.split()
+                if splline:
+                    valcode = 10
+                    if splline[1] == 'RUNNING':
+                        valcode = 0
+                    self.serviceGauge.labels(self.hostname, splline[0], self.monlable).set(valcode)
+
     def main(self):
         """ Main Method"""
         self.__cleanRegistry()
@@ -247,6 +265,7 @@ class XRootDLogMon:
         self.parseTPCPullRequest()
         self.logConnections()
         self.parseAllConnections()
+        self.processStatus()
 
     def execute(self):
         """Execute Main Program."""
