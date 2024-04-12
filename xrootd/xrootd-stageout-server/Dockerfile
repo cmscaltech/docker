@@ -16,9 +16,6 @@ RUN useradd -m -u $UID -g $GID -o -s /bin/bash $UNAME
 RUN yum -y install xrootd xrootd-server xrootd-libs xrootd-server-libs xrootd-client \
                    xrootd-client-libs xrootd-scitokens python3-scitokens gfal2-plugin-xrootd \
                    xrootd-multiuser xrootd-voms voms-clients xrootd-fuse && yum clean all
-#RUN yum -y install xrootd-client-devel \
-#                   xrootd-devel xrootd-fuse xrootd-private-devel \
-#                   xrootd-server-devel xrootd-selinux scitokens-cpp && yum clean all
 
 RUN mkdir -p /var/log/xrootd/clustered/
 RUN chown -R xrootd:xrootd /var/log/xrootd/
@@ -34,10 +31,13 @@ COPY config/default/opt/cache-update.sh /opt/cache-update.sh
 COPY config/default/opt/fetch-crl.sh /opt/fetch-crl.sh
 COPY config/default/opt/start-cmsd.sh /opt/start-cmsd.sh
 COPY config/default/opt/start-xrootd.sh /opt/start-xrootd.sh
+COPY config/default/opt/postStart.sh /opt/postStart.sh
+COPY config/default/opt/preStop.sh /opt/preStop.sh
+RUN chmod +x /opt/fetch-crl.sh /opt/start-cmsd.sh /opt/start-xrootd.sh /opt/postStart.sh /opt/preStop.sh /opt/cache-update.sh
 
 # To track connections, we need pyasn lib and GeoIP database
 RUN yum -y install gcc python3-devel python3-gunicorn && yum clean all
-RUN pip3 install pyasn psutil
+RUN pip3 install pyasn psutil net-tools
 RUN mkdir -p /opt/pyasn
 RUN pyasn_util_download.py --latestv46 --filename /opt/pyasn/GeoIPASNum.rib && \
     pyasn_util_convert.py --single /opt/pyasn/GeoIPASNum.rib /opt/pyasn/GeoIPASNum.dat && \
