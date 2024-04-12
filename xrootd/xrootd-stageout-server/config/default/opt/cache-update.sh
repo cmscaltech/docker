@@ -4,7 +4,7 @@ while :
 do
   if [ -z "$X509_USER_PROXY" ]; then
     echo "X509_USER_PROXY is not set. Will not update it. Sleep 20mins..."
-    slep 600
+    sleep 600
   elif [ -z "$K8S_X509_USER_PROXY" ]; then
     echo "K8S_X509_USER_PROXY is not set. Will not update it. Sleep 20mins..."
     sleep 600
