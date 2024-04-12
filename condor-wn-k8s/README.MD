@@ -31,3 +31,15 @@ Wrapper script: `/usr/local/libexec/condor-docker` is wrapper to run docker comm
 You would use that script to manipulate docker run commands/parameters. We keep it private - due to nature of script exposing some
 information, like image registry, docker params and what is allowed to mount, umount and or what privileges we give to containers.
 If you are interested in it - please drop an email to hep-wheel@caltech.edu
+
+
+
+START = (!isUndefined(Owner)   && Owner=?="jbalcas")
+    6  cp /opt/secrets/hostcert /etc/grid-security/hostcert.pem
+    7  cp /opt/secrets/hostkey /etc/grid-security/hostkey.pem
+    8  ls -l /etc/grid-security/
+    9  chmod 600 /etc/grid-security/hostkey.pem
+   10  ls -l /etc/grid-security/
+   11  cp /opt/secrets/token /etc/condor/tokens.d/condor@ultralight.org
+   12  vi /etc/condor/config.d/99-local.conf
+   13  condor_master

@@ -55,6 +55,9 @@ RUN yum -y install cvmfs \
                    nss nss-util file file-libs readline zlib popt bzip2 \
                    bzip2-libs bind-utils openssl-libs compat-openssl10 python2 && \
     yum -y install iputils iproute && \
+    yum -y distro-sync apptainer apptainer-suid && \
+    yum -y install condor && \
+    yum -y update && \
     yum clean all && \
     rm -rf /var/cache/yum
 
@@ -63,29 +66,22 @@ RUN yum -y install cvmfs \
 RUN groupadd -r condor && \
     useradd -r -g condor -d /var/lib/condor -s /sbin/nologin condor
 
-# Sync singularity version
-RUN yum -y distro-sync apptainer apptainer-suid && \
-    yum clean all && \
-    rm -rf /var/cache/yum
-
 # Disable overlay and privileged mode
 RUN perl -pi -e 's/^enable overlay =.*/enable overlay = no/g' /etc/apptainer/apptainer.conf && \
-    perl -pi -e 's/^allow setuid =.*/allow setuid = no/g'     /etc/apptainer/apptainer.conf
+    perl -pi -e 's/^allow setuid =.*/allow setuid = no/g'     /etc/apptainer/apptainer.conf && \
+    ln -s /usr/bin/python2 /usr/bin/python \
 
-# yum update
-RUN yum update -y && \
-    yum clean all && \
-    rm -rf /var/cache/yum
+COPY config/99-local.conf /etc/condor/config.d/99-local.conf
+COPY config/opt/postStart.sh /opt/postStart.sh
 
-RUN ln -s /usr/bin/python2 /usr/bin/python
-
-RUN yum -y install condor
 RUN mkdir -p /root/.apptainer && \
-    mkdir -p /wntmp/condor/log && \
+    mkdir -p /wntmp/condor/log/condor && \
+    mkdir -p /wntmp/condor/lock && \
+    mkdir -p /wntmp/condor/run/condor && \
     mkdir -p /wntmp/condor/execute && \
     mkdir -p /etc/condor/config.d && \
     mkdir -p /etc/condor/tokens.d && \
     mkdir -p /etc/condor/passwords.d && \
-    chown -R condor:condor /wntmp/
-COPY config/99-local.conf /etc/condor/config.d/99-local.conf
-
+    mkdir -p /opt/ && \
+    chown -R condor:condor /wntmp/ && \
+    chmod +x /opt/postStart.sh
