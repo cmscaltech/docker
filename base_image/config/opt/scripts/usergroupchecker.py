@@ -99,7 +99,10 @@ def createUser(username, uid, groups):
         print(f"User does not exist. Creating user: {username}")
         grLine = ",".join(groups)
         if grLine:
-            runCmd(f"useradd -u {uid} -s /sbin/nologin -M -g {username} -G {grLine} {username}")
+            if username in groups:
+                runCmd(f"useradd -u {uid} -s /sbin/nologin -M -g {username} -G {grLine} {username}")
+            else:
+                runCmd(f"useradd -u {uid} -s /sbin/nologin -M -G {grLine} {username}")
         else:
             runCmd(f"useradd -u {uid} -s /sbin/nologin -M {username}")
         return
