@@ -16,10 +16,10 @@ services:
     # Sitename, mainly for reporting
     - SITENAME=T2_US_Nebraska_Test
     # Certificate/Key
-    - XRD_CERT=/etc/grid-security/xrootdcert.pem
-    - XRD_KEY=/etc/grid-security/xrootdkey.pem
+    - XRD_CERT=/add/location/of/addxrdcert.pem
+    - XRD_KEY=/add/location/of/addxrdkey.pem
     # XRootD http secret key. Mandatory if HTTPREADWRITE is set
-    - XRD_HTTP_SECRET_KEY=pYrySWhj4BftwJkSbMyAk8ha3p5YXsAt7g3mFzX7Vkg
+    - XRD_HTTP_SECRET_KEY=addkeyhere
     # Enable HTTP Read/Write
     - HTTPREADWRITE=1
     # Shoveler endpoint for reporting stats
@@ -36,16 +36,16 @@ services:
     #- DFS=1
     # CUSTOMCHECKSUM - Custom Checksum Wrapper Script (Useful if FS does not support xattr)
     #- CUSTOMCHECKSUM=1
-    - VOMS_MAP_LOCATION=/etc/grid-security/voms-mapfile
-    - GRID_MAP_LOCATION=/etc/grid-security/grid-mapfile
+    - VOMS_MAP_LOCATION=/add/location/of/vomsfile
+    - GRID_MAP_LOCATION=/add/location/of/gridfile
     - USER_MAP_FILE=/opt/usergroups/user-group
     volumes:
     - /root/xrootd/macaroon-secret:/etc/xrootd/macaroon-secret:ro
     - /root/xrootd/xrootd-clustered.cfg:/etc/xrootd/xrootd-clustered.cfg:ro
     - /root/xrootd/auth_file:/etc/xrootd/auth_file:ro
    # - /root/xrootd/config.d:/etc/xrootd/config.d:ro
-    - /etc/grid-security/xrootdcert.pem:/etc/grid-security/xrootdcert.pem:ro
-    - /etc/grid-security/xrootdkey.pem:/etc/grid-security/xrootdkey.pem:ro
+    - /add/location/of/cert.pem:/add/location/of/cert.pem:ro
+    - /add/location/of/key.pem:/add/location/of/key.pem:ro
     - /etc/grid-security/user-group:/opt/usergroups/user-group
     #- /etc/passwd:/etc/passwd
     #- /etc/group:/etc/group
