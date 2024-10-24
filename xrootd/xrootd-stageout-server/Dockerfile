@@ -61,6 +61,7 @@ RUN mkdir -p /etc/grid-security/vomsdir/cms/
 COPY config/default/etc/grid-security/vomsdir/cms/lcg-voms2.cern.ch.lsc /etc/grid-security/vomsdir/cms/lcg-voms2.cern.ch.lsc
 COPY config/default/etc/grid-security/vomsdir/cms/voms-cms-auth.app.cern.ch.lsc /etc/grid-security/vomsdir/cms/voms-cms-auth.app.cern.ch.lsc
 COPY config/default/etc/grid-security/vomsdir/cms/voms2.cern.ch.lsc /etc/grid-security/vomsdir/cms/voms2.cern.ch.lsc
+COPY config/default/etc/grid-security/vomsdir/cms/voms-cms-auth.cern.ch.lsc /etc/grid-security/vomsdir/cms/voms-cms-auth.cern.ch.lsc
 
 # Add default grid and voms mapfile
 COPY config/default/etc/grid-security/grid-mapfile /etc/grid-security/grid-mapfile
