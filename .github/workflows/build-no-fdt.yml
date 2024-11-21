@@ -1,0 +1,87 @@
+name: Docker Image Build For FDT Agent
+
+
+on:
+  workflow_dispatch:
+    inputs:
+      buildtag:
+        description: "Build Tag"
+        default: "dev"
+        type: "string"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      DOCKER_USER: ${{secrets.DOCKER_USER}}
+      DOCKER_REGISTRY: ${{secrets.DOCKER_REGS}}
+      DOCKER_SDN_USER: ${{secrets.DOCKER_SDN_USER}}
+      DOCKER_SDN_REGISTRY: ${{secrets.DOCKER_SDN_REGS}}
+      DOCKER_TIER2_USER: ${{secrets.DOCKER_TIER2_USER}}
+      DOCKER_TIER2_REGISTRY: ${{secrets.DOCKER_TIER2_REGS}}
+      IMAGE_NAME: "cmscaltech/fdt"
+      BUILD_DIR: "cmscaltech-docker/fdt"
+    steps:
+    - name: Checkout tools repo
+      uses: actions/checkout@v3
+      with:
+        repository: cmscaltech/docker
+        path: cmscaltech-docker
+
+    - name: Login to First Docker Registry
+      id: dockerOne
+      if: always()
+      uses: docker/login-action@v3
+      with:
+        registry: ${{secrets.DOCKER_REGS}}
+        username: ${{secrets.DOCKER_USER}}
+        password: ${{secrets.DOCKER_PASSWORD}}
+
+    - name: Login to Second Docker Registry
+      id: dockerTwo
+      if: always()
+      uses: docker/login-action@v3
+      with:
+        registry: ${{secrets.DOCKER_SDN_REGS}}
+        username: ${{secrets.DOCKER_SDN_USER}}
+        password: ${{secrets.DOCKER_SDN_PASSWORD}}
+
+    - name: Login to Thrid Docker Registry
+      id: dockerThree
+      if: always()
+      uses: docker/login-action@v3
+      with:
+        registry: ${{secrets.DOCKER_TIER2_REGS}}
+        username: ${{secrets.DOCKER_TIER2_USER}}
+        password: ${{secrets.DOCKER_TIER2_PASSWORD}}
+
+    - name: Build Docker image
+      id: mainRun
+      if: always() && (steps.dockerOne.outcome == 'success' || steps.dockerTwo.outcome == 'success' || steps.dockerThree.outcome == 'success')
+      run: |
+        cd $BUILD_DIR
+        docker build . --file Dockerfile \
+            --tag $IMAGE_NAME:${{ github.event.inputs.buildtag }} \
+            --tag $IMAGE_NAME:${{ github.event.inputs.buildtag }}-$(date +%Y%m%d) \
+            --tag $DOCKER_SDN_REGISTRY/$IMAGE_NAME:${{ github.event.inputs.buildtag }} \
+            --tag $DOCKER_SDN_REGISTRY/$IMAGE_NAME:${{ github.event.inputs.buildtag }}-$(date +%Y%m%d) \
+            --tag $DOCKER_TIER2_REGISTRY/$IMAGE_NAME:${{ github.event.inputs.buildtag }} \
+            --tag $DOCKER_TIER2_REGISTRY/$IMAGE_NAME:${{ github.event.inputs.buildtag }}-$(date +%Y%m%d)
+
+    - name: Docker Push Image to first registry
+      if: always() && (steps.mainRun.outcome == 'success' && steps.dockerOne.outcome == 'success')
+      run: |
+        docker push $IMAGE_NAME:${{ github.event.inputs.buildtag }}-$(date +%Y%m%d)
+        docker push $IMAGE_NAME:${{ github.event.inputs.buildtag }}
+
+    - name: Docker Push Image to second registry
+      if: always() && (steps.mainRun.outcome == 'success' && steps.dockerTwo.outcome == 'success')
+      run: |
+        docker push $DOCKER_SDN_REGISTRY/$IMAGE_NAME:${{ github.event.inputs.buildtag }}
+        docker push $DOCKER_SDN_REGISTRY/$IMAGE_NAME:${{ github.event.inputs.buildtag }}-$(date +%Y%m%d)
+
+    - name: Docker Push Image to third registry
+      if: always() && (steps.mainRun.outcome == 'success' && steps.dockerThree.outcome == 'success')
+      run: |
+        docker push $DOCKER_TIER2_REGISTRY/$IMAGE_NAME:${{ github.event.inputs.buildtag }}
+        docker push $DOCKER_TIER2_REGISTRY/$IMAGE_NAME:${{ github.event.inputs.buildtag }}-$(date +%Y%m%d)
