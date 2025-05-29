@@ -1,6 +1,6 @@
 import os.path
 
-from flask import Flask
+from flask import Flask, Response
 app = Flask(__name__)
 
 @app.route('/')
@@ -12,5 +12,5 @@ def metrics():
     if os.path.isfile('/srv/xrootd-metrics'):
         with open('/srv/xrootd-metrics', 'rb') as fd:
             content = fd.read()
-        return content.decode('utf-8')
-    raise FileNotFoundError('/srv/xrootd-metrics')
+        return Response(content, status=200, content_type='text/plain; version=0.0.4')
+    return Response("File not found", status=404, content_type='text/plain')
