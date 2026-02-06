@@ -1,0 +1,57 @@
+ervices:
+  xrootd-stageout-server:
+    image: cmscaltech/xrootd-stageout-server:cmsdev
+    network_mode: host
+    restart: unless-stopped
+    environment:
+    # Redirector configuration
+    #- XRD_REDIR=redir-01.sense.unl.edu
+    - XRD_REDIR=red-sense-dtn2.unl.edu
+    #- XRD_REDIR=198.32.43.1
+    - XRD_REDIR_PORT=1213
+    # Local XRootD Ports
+    - XRD_PORT=1095
+    - XRD_MNG_PORT=1213
+    # Local FS point. This has to match with volume mounted
+    - LOCAL_ROOT=/storage/cms/
+    # Sitename, mainly for reporting
+    - SITENAME=T2_US_Nebraska_Test
+    # Certificate/Key
+    - XRD_CERT=/add/location/of/cert.pem
+    - XRD_KEY=/add/location/of/key.pem
+    # XRootD http secret key. Mandatory if HTTPREADWRITE is set
+    - XRD_HTTP_SECRET_KEY=addkeyhere
+    # Enable HTTP Read/Write
+    - HTTPREADWRITE=1
+    # Shoveler endpoint for reporting stats
+    - SHOVELER=198.32.43.1
+    - SHOVELER_PORT=9993
+    # Type redirector (Optional - if defined, pod will act as redirector)
+    - TYPE_REDIRECTOR=1
+    # Run XRootD in full debug mode (Optional - if defined, pod will run in full debug mode)
+    # - FULL_DEBUG=1
+    # Global redirector. (Optional - if defined, ti will register to master redirector - e.g. CMS Fermilab)
+    #- GLOBALREDIR=cmsxrootd.fnal.gov
+    # DFS - Distributed File System (Do all servers see same Filesystem?)
+    # Redirect all lookup calls to original data servers. Redirector does not have visibility of FS
+    #- DFS=1
+    # CUSTOMCHECKSUM - Custom Checksum Wrapper Script (Useful if FS does not support xattr)
+    #- CUSTOMCHECKSUM=1
+    - VOMS_MAP_LOCATION=/add/location/of/vomsfile
+    - GRID_MAP_LOCATION=/add/location/of/gridfile
+    - USER_MAP_FILE=/opt/usergroups/user-group
+    volumes:
+    - /root/xrootd/xrootd-redir/macaroon-secret:/etc/xrootd/macaroon-secret:ro
+    - /root/xrootd/xrootd-redir/xrootd-clustered.cfg:/etc/xrootd/xrootd-clustered.cfg:ro
+    - /root/xrootd/xrootd-redir/auth_file:/etc/xrootd/auth_file:ro
+   # - /root/xrootd/xrootd-redir/config.d:/etc/xrootd/config.d:ro
+    -  /add/location/of/cert.pem:/add/location/of/cert.pem.pem:ro
+    - /add/location/of/cert.pem/key.pem:/add/location/of/key.pem:ro
+    - /etc/grid-security/user-group:/opt/usergroups/user-group
+    #- /etc/passwd:/etc/passwd
+    #- /etc/group:/etc/group
+    - /mnt/sense:/storage/cms:rw
+    cap_add:
+    - CAP_SETUID
+    - CAP_SETGID
+    - CAP_DAC_OVERRIDE
