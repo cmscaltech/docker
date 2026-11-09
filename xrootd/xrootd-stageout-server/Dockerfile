@@ -1,4 +1,4 @@
-ARG RELEASE=latest
+ARG RELEASE=osg26-el10-attempt1
 FROM cmscaltech/base_image:$RELEASE
 # NOTES
 # 2024 Feb 7th - Move to cmscaltech/base_image (which is based on OSG Image. See base_image repo)
