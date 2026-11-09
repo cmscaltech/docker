@@ -16,7 +16,7 @@ RUN yum -y update
 
 RUN yum -y install xrootd xrootd-server xrootd-libs xrootd-server-libs xrootd-client \
                    xrootd-client-libs xrootd-scitokens python3-scitokens gfal2-plugin-xrootd \
-                   xrootd-multiuser xrootd-voms voms-clients xrootd-fuse && yum clean all
+                   xrootd-multiuser xrootd-voms voms-clients xrootd-fuse
 
 RUN mkdir -p /var/log/xrootd/clustered/
 RUN chown -R xrootd:xrootd /var/log/xrootd/
@@ -27,6 +27,7 @@ RUN curl -OL https://github.com/prometheus/node_exporter/releases/download/v1.7.
     mv node_exporter-1.7.0.linux-amd64/node_exporter /usr/bin/
 
 # Install custom monitoring
+RUN yum -y install python3-pip
 RUN pip3 install prometheus_client flask
 COPY config/default/etc/supervisord.d/10-xrootd.conf /etc/supervisord.d/10-xrootd.conf
 COPY config/default/opt/xroot-mon.py /opt/xroot-mon.py
@@ -42,7 +43,7 @@ COPY config/default/opt/preStop.sh /opt/preStop.sh
 RUN chmod +x /opt/fetch-crl.sh /opt/start-cmsd.sh /opt/start-xrootd.sh /opt/postStart.sh /opt/preStop.sh /opt/cache-update.sh
 
 # To track connections, we need pyasn lib and GeoIP database
-RUN yum -y install gcc python3-devel python3-gunicorn && yum clean all
+RUN yum -y install gcc python3-devel python3-gunicorn
 RUN pip3 install pyasn psutil net-tools
 RUN mkdir -p /opt/pyasn
 RUN pyasn_util_download.py --latestv46 --filename /opt/pyasn/GeoIPASNum.rib && \
@@ -70,3 +71,5 @@ COPY config/default/etc/grid-security/voms-mapfile /etc/grid-security/voms-mapfi
 
 # Get latest CA's
 RUN fetch-crl || echo "Supress warnings."
+
+RUN dnf clean all
