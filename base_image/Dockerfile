@@ -1,4 +1,4 @@
-FROM opensciencegrid/software-base:25-al9-release
+FROM opensciencegrid/software-base:25-el9-release
 
 RUN yum -y install python3-pyyaml && yum clean all
 RUN mkdir -p /opt/usergroups && mkdir -p /opt/scripts/
